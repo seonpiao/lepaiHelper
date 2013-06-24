@@ -211,7 +211,11 @@ Modules.reg('index',{
     init:function(){
         server.get('/lpai/info',function(req,res,next){
             var pid = req.query.pid;
-            var dataFile = Path.join(__dirname,'../data',pid + '.json');
+            var dir = Path.join(__dirname,'../data');
+            if(!lib.fs.isExist(dir)){
+                lib.fs.mkdir(dir);
+            }
+            var dataFile = Path.join(dir,pid + '.json');
             try{
                 var tpl = lib.fs.readFile(Path.join(__dirname,'../tpls','info.mustache'));
                 var data = JSON.parse(lib.fs.readFile(dataFile));
@@ -222,7 +226,11 @@ Modules.reg('index',{
         });
         server.get('/lpai/user',function(req,res,next){
             var name = decodeURIComponent(req.query.name);
-            var dataPath = Path.join(__dirname,'../userdata/',name + '.json');
+            var dir = Path.join(__dirname,'../userdata');
+            if(!lib.fs.isExist(dir)){
+                lib.fs.mkdir(dir);
+            }
+            var dataPath = Path.join(dir,name + '.json');
             var userInfo = JSON.parse(lib.fs.readFile(dataPath));
             var tpl = lib.fs.readFile(Path.join(__dirname,'../tpls','userinfo.mustache'));
             res.send(lib.plugins.Mustache.render(tpl,{userInfo:userInfo}));
