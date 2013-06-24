@@ -30,7 +30,7 @@ var start = function(){
                 var matches = html.match(/window.setInterval\(\'AjaxGet\(\"(.+)\"\)\',1000\);/);
                 if(matches){
                     var pids = matches[1];
-                    ic.log(pids);
+                    // ic.log(pids);
                     lib.http.request('http://lpai.com.cn/Process/AjaxGetChange.ashx?pid_str=' + pids,{
                         headers:{
                             'Referer':'http://lpai.com.cn/Index.aspx'
@@ -55,7 +55,7 @@ var start = function(){
                                     newPrice:[]
                                 };
                                 product = product.split('|');
-                                ic.log('Product id : ' + product[5]);
+                                // ic.log('Product id : ' + product[5]);
                                 /**
                                  * 8.48|上官小仙|8|0:00:08|0|65026|KMKZKVMFU
                                  * 
@@ -68,7 +68,7 @@ var start = function(){
                                  * product[6] : uid
                                  */
                                 var dataFile = Path.join(__dirname,'../data',product[5] + '.json');
-                                ic.log('Data file : ' + dataFile);
+                                // ic.log('Data file : ' + dataFile);
                                 try{
                                     var content = lib.fs.readFile(dataFile);
                                 }catch(e){}
@@ -119,7 +119,7 @@ var start = function(){
                                         'Referer':'http://lpai.com.cn/Bid/' + product[5] + '.html'
                                     },
                                     onsuccess:function(xhr,result){
-                                        ic.log('User data result : ' + result);
+                                        // ic.log('User data result : ' + result);
                                         try{
                                             var usersData = JSON.parse(result);
                                         }
