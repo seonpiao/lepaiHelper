@@ -214,18 +214,22 @@ var start = function(){
                                     }
                                 });
                             });
+                            ic.log('12.Recure.');
                             timer = setTimeout(thread,interval);
                         },
                         onfailure:function(){
+                            ic.log('13.Recure.');
                             timer = setTimeout(thread,interval);
                         }
                     });
                 }
                 else{
+                    ic.log('14.Recure.');
                     timer = setTimeout(thread,interval);
                 }
             },
             onfailure:function(){
+                ic.log('15.Recure.');
                 timer = setTimeout(thread,interval);
             }
         });
