@@ -67,7 +67,11 @@ var start = function(){
                                  * product[5] : pid
                                  * product[6] : uid
                                  */
-                                var dataFile = Path.join(__dirname,'../data',product[5] + '.json');
+                                var dir = Path.join(__dirname,'../data/');
+                                if(!lib.fs.isExist(dir)){
+                                    lib.fs.mkdir(dir);
+                                }
+                                var dataFile = Path.join(dir,product[5] + '.json');
                                 // ic.log('Data file : ' + dataFile);
                                 try{
                                     var content = lib.fs.readFile(dataFile);
