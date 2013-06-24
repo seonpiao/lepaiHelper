@@ -1,0 +1,4 @@
+--recursive 
+--reporter list --growl
+--compilers coffee:coffee-script
+-r test/_init.js

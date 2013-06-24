@@ -1,0 +1,43 @@
+<html>
+<head>
+<title>{{name}}</title>
+</head>
+<body>
+<style>
+td{border:1px solid #eeeeee;padding:10px;}
+</style>
+<p><a href="{{url}}">{{name}}</a></p>
+<p>开始时间：{{start}} 刷新时间：{{update}}</p>
+<p></p>
+<p>价格：{{price}}</p>
+<p>总出价次数：<span data-elem="total"></span></p>
+{{#newPrice2}}
+<p>users：{{user}} / {{price}}</p>
+{{/newPrice2}}
+<table style="border:1px solid #eeeeee;width:100%;">
+<tr>
+<td>用户名</td>
+<td>已出价</td>
+<td>开始出价</td>
+<td>最后出价</td>
+</tr>
+{{#users}}
+<tr>
+<td><a href="/lpai/user?name={{{name}}}" target="_blank">{{{name}}}</a></td>
+<td data-elem="times">{{times}}</td>
+<td>{{start}}</td>
+<td>{{last}}</td>
+</tr>
+{{/users}}
+</table>
+<script>if(location.hash != '#no')setTimeout(function(){location.reload()},1000)</script>
+<script>
+var elems = document.querySelectorAll('[data-elem=times]');
+var total = 0;
+for (var i = 0; i < elems.length; i++){
+total += parseInt(elems[i].innerHTML);
+}
+document.querySelector('[data-elem=total]').innerHTML = total;
+</script>
+</body>
+</html>

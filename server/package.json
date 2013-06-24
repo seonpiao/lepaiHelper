@@ -1,0 +1,40 @@
+{
+  "name": "iqiyiBuild",
+  "version": "1.0.0",
+  "description": "iqiyiBuild for Front-end",
+  "keywords": [],
+  "author": {
+    "name": "piaoshihuang",
+    "email": "seon.piao@gmail.com",
+    "url": "http://www.piaoshihuang.cn/"
+  },
+  "homepage": "http://www.piaoshihuang.cn/",
+
+  "engines": {
+    "node": ">= 0.6.0",
+    "npm": ">= 1.0.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+
+  "dependencies": {
+    "express": "3.0.0rc4",
+    "ecstatic": "0.4.0",
+    "spm": "0.3.0",
+    "seajs": "1.2.1",
+    "rimraf": "2.0.2",
+    "node-native-zip": "1.1.0",
+    "iconv-lite": "0.2.5",
+    "css-combo": "0.2.6",
+    "ldapjs": "0.6.2"
+  },
+  "devDependencies": {
+    "chai": "*",
+    "supertest": "*"
+  },
+  "bundleDependencies": [],
+
+  "private": true,
+  "main": "lib.js"
+}

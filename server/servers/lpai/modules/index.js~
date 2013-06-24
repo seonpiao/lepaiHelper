@@ -1,0 +1,46 @@
+var Modules = require('../../../core/modules');
+var server = require('../../../core/core');
+var Result = require('../../../core/result');
+var lib = require('../../../lib/lib');
+var mail = require('../../../kit/mail');
+var ic = new lib.ic.InfoCenter({moduleName:'module:index'});
+
+Modules.reg('index',{
+    init:function(){
+        server.all('/getInfo',function(req,res,next){
+            var emailList = [
+            "yangfan@qiyi.com",
+            "caowenlong@qiyi.com",
+            "maguangyi@qiyi.com",
+            "jiangyang@qiyi.com",
+            "puyan@qiyi.com",
+            "sunkuo@qiyi.com",
+            "piaoshihuang@qiyi.com",
+            "qihongcai@qiyi.com",
+            "liuyongsheng@qiyi.com",
+            "zhangjiagang@qiyi.com",
+            "tangjing@qiyi.com",
+            "shenjia@qiyi.com"
+            ];
+            emailList = ["caowenlong@qiyi.com"];
+            var src = req.query.src;
+            var dest = req.query.dest;
+            var message = req.query.message;
+            mail.send({
+                from:'qiyiria@gmail.com',
+                to:req.body.email,
+                cc:emailList.join(","),
+                subject:'主站前端-' + req.body.name + '-周报【' + req.body.time + '】',
+                content:req.body.report
+            },function(err){
+                if(err){
+                    ic.error(err);
+                    Result.sendError(res,{data:err + ''});
+                }
+                else{
+                    Result.sendOk(res);
+                }
+            });
+        });
+    }
+});

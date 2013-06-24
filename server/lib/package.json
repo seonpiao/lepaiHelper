@@ -1,0 +1,35 @@
+{
+  "name": "Qiyi js library for node",
+  "version": "1.0.0",
+  "description": "Qiyi js library for node",
+  "keywords": [
+    "Qiyi",
+    "Node.js",
+    "library"
+  ],
+  "author": {
+    "name": "piaoshihuang",
+    "email": "seon.piao@gmail.com",
+    "url":  "http://www.piaoshihuang.cn/"
+  },
+  "homepage": "http://www.piaoshihuang.cn/",
+  "repository": {
+    "type": "git",
+    "url": "https://gitub.com/openshift/crankcase"
+  },
+
+  "engines": {
+    "node": ">= 0.6.0",
+    "npm": ">= 1.0.0"
+  },
+
+  "dependencies": {
+    "iconv-lite":">=0",
+    "rimraf":">=0"
+  },
+  "devDependencies": {},
+  "bundleDependencies": [],
+
+  "private": true,
+  "main": "lib.js"
+}
