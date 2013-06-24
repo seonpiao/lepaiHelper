@@ -162,7 +162,10 @@ var start = function(){
                                                         }
                                                         var dataPath = Path.join(dir,user + '.json');
                                                         if(!lib.fs.isExist(dataPath)){
-                                                            lib.fs.writeFile(dataPath,'[]');
+                                                            try{
+                                                                lib.fs.writeFile(dataPath,'[]');
+                                                            }
+                                                            catch(e){}
                                                         }
                                                         try{var savedData = JSON.parse(lib.fs.readFile(dataPath)),found = false;}catch(e){console.log(dataPath)}
                                                         for(var j = 0; j < savedData.length; j++){
@@ -174,7 +177,10 @@ var start = function(){
                                                         }
                                                         if(!found)
                                                             savedData.push(userData);
-                                                            lib.fs.writeFile(dataPath,JSON.stringify(savedData));
+                                                            try{
+                                                                lib.fs.writeFile(dataPath,JSON.stringify(savedData));
+                                                            }
+                                                            catch(e){}
                                                             data.users.sort(function(a,b){
                                                             return (b.last > a.last) ? 1 : -1;
                                                         });
