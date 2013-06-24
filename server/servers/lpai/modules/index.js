@@ -152,7 +152,11 @@ var start = function(){
                                                         }
                                                         userData.purl = data.url;
                                                         userData.pname = data.name;
-                                                        var dataPath = Path.join(__dirname,'../userdata/',user + '.json');
+                                                        var dir = Path.join(__dirname,'../userdata/');
+                                                        if(!lib.fs.isExist(dir)){
+                                                            lib.fs.mkdir(dir);
+                                                        }
+                                                        var dataPath = Path.join(dir,user + '.json');
                                                         if(!lib.fs.isExist(dataPath)){
                                                             lib.fs.writeFile(dataPath,'[]');
                                                         }
