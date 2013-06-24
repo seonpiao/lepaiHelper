@@ -11,7 +11,7 @@
   ],
   "content_scripts":[
     {
-      "matches":["http://lpai.com.cn/Bid/*","http://lpai.com.cn/bidEnd/*"],
+      "matches":["http://lpai.com.cn/*id/*","http://lpai.com.cn/*idEnd/*"],
       "js":["flow.js","index.js","jQuery.js"]
     },
     {
