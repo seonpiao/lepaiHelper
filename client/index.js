@@ -200,36 +200,35 @@ var Check = Flowjs.Class({
     },
     methods:{
         _process:function(data,callback){
-            var d1 = Date.now();
             var _this = this;
             var requests = {};
             var retry = 0;
-            Logger.check('开始查询(' + d1 + ')');
             var send = function(rid){
                 requests[rid] = {
                     timer:0,
                     timeout:false
                 };
                 Logger.check('开始查询产品信息:' + retry + '(' + rid + ')');
+                var d1 = Date.now();
                 $.ajax({
-                    url:'http://bid.5pai.com/pull/i1',
+                    url:'http://www.lpai.com.cn/Process/BidShow.ashx',
                     data:{
-                        id:data.pid,
+                        pId:data.pid,
                         x:'0'
                     },
                     type:'get',
-                    dataType:'html',
+                    dataType:'json',
                     cache:false,
-                    success:function(s){
+                    success:function(info){
                         clearTimeout(requests[rid].timer);
                         if(callback){
                             d2 = Date.now();
                             delay = d2 - d1;
-                            var arr = s.match(/^P.*?a:([\d\.]+).*?c:'(.*?)'.*?e:(\d+).*?SS:(\d+)$/);
-                            if(arr){
-                                var currPrice = parseFloat(arr[1]);
-                                var currUser = decodeURIComponent(arr[2]);
-                                var countdown = parseInt(arr[3]);
+                            var currInfo = info.Tables[0].Rows[0];
+                            if(currInfo.state == '0'){
+                                var currPrice = parseFloat(currInfo.now_price);
+                                var currUser = decodeURIComponent(currInfo.set_price_people);
+                                var countdown = parseInt(currInfo.seconds) * 1000;
                                 Logger.check(delay + ' | ' + currUser + ' | <span style="color:red;">' + countdown + '</span>(' + rid + ')');
                                 callback(null,{isOk:true,isEnd:false,delay:delay,currPrice:currPrice,currUser:currUser,countdown:countdown});
                             }
@@ -424,10 +423,13 @@ var IsPrice = Flowjs.Class({
             }
             else{
                 var userNumMap = {
-                    '0':600,
-                    '1':1200,
-                    '2':600,
-                    '3':600
+                    '0':1000,
+                    '1':1000,
+                    '2':1000,
+                    '3':1000,
+                    '4':1000,
+                    '5':1000,
+                    '6':1000
                 };
                 var startTime = data.priceTime || userNumMap[data.userNum];
                 if(document.webkitVisibilityState == 'hidden'){
@@ -435,26 +437,13 @@ var IsPrice = Flowjs.Class({
                 }
                 Logger.check('出价条件：' + startTime + '(' + data.userNum + ')');
                 var realCountdown = data.countdown - data.delay;
-                var diffBuyPriceElem = $('.diffbuypriceid');
-                //免费米
-                var winPayElem = $('#__tprice');
-                var limitPriceElem = $('.ni_pprice');
-                var winPay,limitPrice;
-                if(winPayElem.length > 0){
-                    winPay = parseFloat(winPayElem.html().match(/\u00a5([.\d]+)$/)[1]);
-                }
-                if(limitPriceElem.length > 0){
-                    limitPrice = parseFloat(limitPriceElem.html().match(/\u00a5([.\d]+)$/)[1]);
-                }
+                var actPrice = parseFloat($('.ni_pprice').html().substring(1));
                 var startPrice = data.startPrice[0].value;
                 if(data.currPrice < startPrice){
                     Logger.check('未达到最低出价价格');
                     this._default();
                 }
-                else if(diffBuyPriceElem.length > 0 && diffBuyPriceElem.html().match(/\u00a5([.\d]+)$/)[1] < data.currPrice){
-                    this._select('出价次数超限');
-                }
-                else if(winPay && limitPrice && winPay.length > 0 && winPay > limitPrice){
+                else if(actPrice < data.currPrice){
                     this._select('出价次数超限');
                 }
                 else if(realCountdown <= startTime){
@@ -590,7 +579,7 @@ var Price = Flowjs.Class({
                 send(rid);
             }
             else{
-                Logger.check('[' + _this._times + ']模拟出价。');
+                Logger.price('[' + _this._times + ']模拟出价。');
                 callback();
             }
         },
@@ -750,8 +739,7 @@ var GetUserNum = Flowjs.Class({
     },
     methods:{
         _process:function(data,callback){
-            var history = $('[ac=__history]');
-            var users = $('#BidRightDiv .noreturn');
+            var users = $('.a_user');
             var userNames = [];
             var userMap = {};
             if(users){
@@ -770,7 +758,6 @@ var GetUserNum = Flowjs.Class({
                 });
             }
             callback(null,{userNum:userNames.length});
-            history.click();
         },
         _describeData:function(){
             return {
@@ -831,10 +818,10 @@ var UpdateConfig = Flowjs.Class({
                     autoLogin:{type:'boolean',empty:true}
                 },
                 output:{
-                    realPrice:{type:'boolean'},
-                    priceTime:{type:'number'},
-                    pricePrice:{type:'string'},
-                    autoLogin:{type:'boolean'}
+                    realPrice:{type:'boolean',empty:true},
+                    priceTime:{type:'number',empty:true},
+                    pricePrice:{type:'string',empty:true},
+                    autoLogin:{type:'boolean',empty:true}
                 }
             };
         }
@@ -1096,29 +1083,26 @@ var Flow = Flowjs.Class({
 
 var flow = new Flow();
 
-// flow.implement('初始化插件布局', LayoutBuilder);
-// flow.implement('初始化配置模块外观', ConfigDrawer);
+flow.implement('初始化插件布局', LayoutBuilder);
+flow.implement('初始化配置模块外观', ConfigDrawer);
 flow.implement('获取网站信息', GetInfo);
 flow.implement('初始化详细信息查看器', DetailViewer);
-// flow.implement('检查产品当前状态', Check);
-// flow.implement('为自动出价器查询产品当前状态', Check);
-// flow.implement('延时启动下一次Check', Delay);
-// flow.implement('打印检查产品信息失败日志', ErrorLog);
-// flow.implement('打印拍卖结束日志', EndLog);
-// flow.implement('初始化配置信息', Config);
-// flow.implement('出价', Price);
-// flow.implement('启动自动出价器', StartHelper);
-// flow.implement('获取当前活跃参与用户数', GetUserNum);
-// flow.implement('根据用户输入更新配置', UpdateConfig);
-// flow.implement('显示初始配置信息', DisplayState);
-// flow.implement('显示更新配置信息', DisplayState);
-// flow.implement('打印出价超限日志', OverrunLog);
-// flow.implement('取消自动出价器', StopHelper);
-// flow.implement('绑定用户更新配置的事件', BindConfigEvent);
-// flow.implement('检查是否需要出价', IsPrice);
-// flow.implement('检查结果', CheckResult);
-// flow.implement('检查是否需要取消自动出价器', IsStopHelper);
-// flow.implement('启动自动登录', AutoLogin);
+flow.implement('检查产品当前状态', Check);
+flow.implement('为自动出价器查询产品当前状态', Check);
+flow.implement('延时启动下一次Check', Delay);
+flow.implement('打印检查产品信息失败日志', ErrorLog);
+flow.implement('打印拍卖结束日志', EndLog);
+flow.implement('初始化配置信息', Config);
+flow.implement('出价', Price);
+flow.implement('获取当前活跃参与用户数', GetUserNum);
+flow.implement('根据用户输入更新配置', UpdateConfig);
+flow.implement('显示初始配置信息', DisplayState);
+flow.implement('显示更新配置信息', DisplayState);
+flow.implement('打印出价超限日志', OverrunLog);
+flow.implement('绑定用户更新配置的事件', BindConfigEvent);
+flow.implement('检查是否需要出价', IsPrice);
+flow.implement('检查结果', CheckResult);
+flow.implement('启动自动登录', AutoLogin);
 // flow.implement('立即执行自动登录', AutoLogin);
 // flow.implement('取消自动登录', AutoLogin);
 

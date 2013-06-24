@@ -24,12 +24,14 @@ var start = function(){
     }
     timer = setTimeout(function thread(){
         heart = new Date().getTime();
+        ic.log('1.Request home page.')
         lib.http.request('http://www.lpai.com.cn/Index.aspx',{
             onsuccess:function(xhr,html){
                 html = html + '';
                 var matches = html.match(/window.setInterval\(\'AjaxGet\(\"(.+)\"\)\',1000\);/);
                 if(matches){
                     var pids = matches[1];
+                    ic.log('2.Request get change.');
                     // ic.log(pids);
                     lib.http.request('http://lpai.com.cn/Process/AjaxGetChange.ashx?pid_str=' + pids,{
                         headers:{
@@ -41,6 +43,7 @@ var start = function(){
                             // var arr = result.replace(/P:/,'').replace(/,V.*$/,'');
                             // arr = eval(arr);
                             var arr = result.split(',');
+                            ic.log('3.Changes:' + arr.length);
                             arr.forEach(function(product){
                                 var data = {
                                     curr:'',
@@ -74,15 +77,18 @@ var start = function(){
                                 var dataFile = Path.join(dir,product[5] + '.json');
                                 // ic.log('Data file : ' + dataFile);
                                 try{
+                                    ic.log('4.Read ' + product[5]);
                                     var content = lib.fs.readFile(dataFile);
-                                }catch(e){}
+                                }catch(e){
+                                    ic.log('5.Not exist');
+                                }
                                 
                                 if(content){
                                     try{
                                         data = JSON.parse(content);
                                     }
                                     catch(e){
-                                        console.error(e.stack);
+                                        ic.log('6.Parse content error.');
                                         return;
                                     }
                                 }
@@ -93,10 +99,10 @@ var start = function(){
                                     var exp = new RegExp('<a href=.\\\/Bid\\\/' + product[5] + '.html. +title=.(.*?).>');
                                     try{
                                         data.name = html.match(exp)[1];
-                                        // ic.log(data.name);
+                                        ic.log('7.Name is ' + data.name);
                                     }
                                     catch(e){
-                                        ic.error(e + '');
+                                        
                                     }
                                 }
                                 data.update = lib.date.format(new Date(),'yyyy-MM-dd HH:mm:ss');
@@ -118,6 +124,7 @@ var start = function(){
                                     }
                                     return null;
                                 };
+                                ic.log('8.Request BidShow.');
                                 lib.http.request('http://lpai.com.cn/Process/BidShow.ashx?memberId=0&pId=' + product[5],{
                                     headers:{
                                         'Referer':'http://lpai.com.cn/Bid/' + product[5] + '.html'
@@ -128,7 +135,7 @@ var start = function(){
                                             var usersData = JSON.parse(result);
                                         }
                                         catch(e){
-                                            ic.error(e + '')
+                                            ic.log('9.Parse result error');
                                             return;
                                         }
                                         if(usersData.Tables.length > 1){
@@ -195,10 +202,14 @@ var start = function(){
                                                 }
                                                 data.price = parseFloat(users[0].price);
                                                 try{
+                                                    ic.log('10.Saving data.');
                                                     lib.fs.writeFile(dataFile,(JSON.stringify(data)));
                                                 }
-                                                catch(e){ic.error(JSON.stringify(data))}
+                                                catch(e){ic.error('11.Saveing error.')}
                                             }
+                                        }
+                                        else{
+
                                         }
                                     }
                                 });
