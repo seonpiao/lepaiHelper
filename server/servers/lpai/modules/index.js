@@ -202,10 +202,10 @@ var start = function(){
                                                 }
                                                 data.price = parseFloat(users[0].price);
                                                 try{
-                                                    ic.log('10.Saving data.');
+                                                    ic.log('10.Saving ' + product[5]);
                                                     lib.fs.writeFile(dataFile,(JSON.stringify(data)));
                                                 }
-                                                catch(e){ic.error('11.Saveing error.')}
+                                                catch(e){ic.log('11.Saveing error.')}
                                             }
                                         }
                                         else{
