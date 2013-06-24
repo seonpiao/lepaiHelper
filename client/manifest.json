@@ -1,0 +1,33 @@
+{
+  "manifest_version": 2,
+
+  "name": "test",
+  "description": "test.",
+  "version": "1.0",
+
+  "permissions": [
+    "http://*.lpai.com.cn/",
+    "notifications"
+  ],
+  "content_scripts":[
+    {
+      "matches":["http://lpai.com.cn/Bid/*"],
+      "js":["flow.js","index.js","jQuery.js"]
+    },
+    {
+      "matches":["http://www.5pai.com/"],
+      "js":["autoclose.js"]
+    },
+    {
+      "matches":["http://openapi.qzone.qq.com/oauth/show*"],
+      "js":["jQuery.js","user.js","autologin.js"]
+    },
+    {
+      "matches":["http://xui.ptlogin2.qq.com/cgi-bin/qlogin*"],
+      "js":["jQuery.js","autoQuickLogin.js"]
+    }
+  ],
+  "web_accessible_resources":[
+    "timer.js"
+  ]
+}
