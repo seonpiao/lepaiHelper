@@ -15,7 +15,7 @@
       "js":["flow.js","index.js","jQuery.js"]
     },
     {
-      "matches":["http://www.5pai.com/"],
+      "matches":["http://www.lpai.com.cn/*","http://lpai.com.cn/*"],
       "js":["autoclose.js"]
     },
     {

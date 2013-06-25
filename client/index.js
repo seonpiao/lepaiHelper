@@ -105,12 +105,17 @@ var ConfigDrawer = Flowjs.Class({
             var startTime = $('<div><input id="start_time" style=/></div>');
             cont.append(startTime);
             startTime = startTime.find('input');
-            startTime.attr('placeholder','user start time');
+            startTime.attr('placeholder','User start time..');
 
             var startPrice = $('<div><input id="start_price"/></div>');
             cont.append(startPrice);
             startPrice = startPrice.find('input');
             startPrice.attr('placeholder','Start when..');
+
+            var maxPrice = $('<div><input id="max_price"/></div>');
+            cont.append(maxPrice);
+            maxPrice = maxPrice.find('input');
+            maxPrice.attr('placeholder','Max price..');
 
             var isTrue = $('<div>真实出价<input id="is_true" type="checkbox" /></div>');
             cont.append(isTrue);
@@ -120,7 +125,14 @@ var ConfigDrawer = Flowjs.Class({
 
             var status = $('<div id="status"/>');
             cont.append(status);
-            callback(null,{isTrue:isTrue,isAutoLogin:isAutoLogin,startTime:startTime,status:status,startPrice:startPrice});
+            callback(null,{
+                isTrue:isTrue,
+                isAutoLogin:isAutoLogin,
+                startTime:startTime,
+                status:status,
+                maxPrice:maxPrice,
+                startPrice:startPrice
+            });
         },
         _describeData:function(){
             return {
@@ -138,6 +150,7 @@ var ConfigDrawer = Flowjs.Class({
                         type:'object'
                     },
                     startPrice:{type:'object'},
+                    maxPrice:{type:'object'},
                     status:{
                         type:'object'
                     }
@@ -354,8 +367,10 @@ var Config = Flowjs.Class({
                 timeout:300,
                 priceTime:0,
                 pricePrice:'0',
+                priceMax:5000,
                 realPrice:false,
-                autoLogin:false
+                autoLogin:false,
+                priced:0
             });
         },
         _describeData:function(){
@@ -364,7 +379,8 @@ var Config = Flowjs.Class({
                     timeout:{type:'number'},
                     priceTime:{type:'number'},
                     realPrice:{type:'boolean'},
-                    pricePrice:{type:'string'}
+                    pricePrice:{type:'string'},
+                    priced:{type:'number'}
                 }
             };
         }
@@ -438,12 +454,12 @@ var IsPrice = Flowjs.Class({
                 Logger.check('出价条件：' + startTime + '(' + data.userNum + ')');
                 var realCountdown = data.countdown - data.delay;
                 var actPrice = parseFloat($('.ni_pprice').html().substring(1));
-                var startPrice = data.startPrice[0].value;
+                var startPrice = data.pricePrice;
                 if(data.currPrice < startPrice){
                     Logger.check('未达到最低出价价格');
                     this._default();
                 }
-                else if(actPrice < data.currPrice){
+                else if(data.priceMax <= data.priced){
                     this._select('出价次数超限');
                 }
                 else if(realCountdown <= startTime){
@@ -467,7 +483,9 @@ var IsPrice = Flowjs.Class({
                     delay:{type:'number'},
                     currUser:{type:'string'},
                     user:{type:'string',empty:true},
-                    startPrice:{type:'object'}
+                    pricePrice:{type:'string'},
+                    priceMax:{type:'number'},
+                    priced:{type:'number'}
                 }
             };
         }
@@ -529,7 +547,7 @@ var Price = Flowjs.Class({
     methods:{
         _process:function(data,callback){
             if(!data.user){
-                callback();
+                callback(null,{priced:0});
                 return;
             }
             var _this = this;
@@ -545,25 +563,25 @@ var Price = Flowjs.Class({
                         timeout:false
                     };
                     $.ajax({
-                        url: 'http://c.5pai.com/BidAction.aspx',
-                        data: { "id": pid },
+                        url: '/Process/MemberSetPrice.aspx',
+                        data: { "pid": pid },
                         type: "get",
                         dataType: "html",
                         cache: false,
                         success:function(s){
                             clearTimeout(requests[rid].timer);
                             if(callback){
-                                if(s == '{Code:0,Detail:\'商品已结束拍卖\'}'){
+                                if(data == "5"){
                                     Logger.check('已结束。(' + rid + ')');
                                 }
-                                else if(s == '{Code:1,Detail:\'点拍成功\'}' || s == '{Code:0,Detail:\'您暂时不用再次出价：您是当前出价人。\'}'){
+                                else if(s.indexOf("success") != -1 || s == '2'){
                                     Logger.check('[' + _this._times + ']出价成功(' + rid + ')');
                                 }
                                 else{
                                     Logger.check('[' + _this._times + ']出价失败：' + s + '(' + rid + ')');
                                 }
                                 if(!requests[rid].timeout){
-                                    callback();
+                                    callback(null,{priced:_this._times});
                                     callback = null;
                                 }
                             }
@@ -580,7 +598,7 @@ var Price = Flowjs.Class({
             }
             else{
                 Logger.price('[' + _this._times + ']模拟出价。');
-                callback();
+                callback(null,{priced:_this._times});
             }
         },
         _describeData:function(){
@@ -590,6 +608,9 @@ var Price = Flowjs.Class({
                     timeout:{type:'number'},
                     realPrice:{type:'boolean'},
                     user:{type:'string',empty:true}
+                },
+                output:{
+                    priced:{type:'number'}
                 }
             };
         }
@@ -753,7 +774,7 @@ var GetUserNum = Flowjs.Class({
                     }
                     userMap[userName]++;
                     if(userMap[userName] > 2 && userNames.indexOf(userName) == -1){
-                        userNames.push(userName)
+                        userNames.push(userName);
                     }
                 });
             }
@@ -782,9 +803,10 @@ var DisplayState = Flowjs.Class({
             var html = [
                 'Real price:' + data.realPrice,
                 'Price time:' + data.priceTime,
+                'Max price:' + data.priceMax,
                 'Start price:' + data.pricePrice
             ];
-            data.status.html(html.join('<br/>'))
+            data.status.html(html.join('<br/>'));
             callback();
         },
         _describeData:function(){
@@ -793,7 +815,8 @@ var DisplayState = Flowjs.Class({
                     status:{type:'object'},
                     realPrice:{type:'boolean'},
                     priceTime:{type:'number'},
-                    pricePrice:{type:'string'}
+                    pricePrice:{type:'string'},
+                    priceMax:{type:'number'}
                 }
             };
         }
@@ -814,12 +837,14 @@ var UpdateConfig = Flowjs.Class({
                 input:{
                     realPrice:{type:'boolean',empty:true},
                     priceTime:{type:'number',empty:true},
+                    priceMax:{type:'number',empty:true},
                     pricePrice:{type:'string',empty:true},
                     autoLogin:{type:'boolean',empty:true}
                 },
                 output:{
                     realPrice:{type:'boolean',empty:true},
                     priceTime:{type:'number',empty:true},
+                    priceMax:{type:'number',empty:true},
                     pricePrice:{type:'string',empty:true},
                     autoLogin:{type:'boolean',empty:true}
                 }
@@ -867,6 +892,15 @@ var BindConfigEvent = Flowjs.Class({
                         });
                     }
                 });
+                data.maxPrice.on("blur",function(e){
+                    var target = e.target;
+                    var value = parseInt(target.value || 0);
+                    if(!isNaN(value)){
+                        _this._select('修改最大出价次数',{
+                            priceMax:value
+                        });
+                    }
+                });
             });
             callback();
         },
@@ -876,6 +910,7 @@ var BindConfigEvent = Flowjs.Class({
                     isTrue:{type:'object'},
                     startTime:{type:'object'},
                     startPrice:{type:'object'},
+                    maxPrice:{type:'object'},
                     isAutoLogin:{type:'object'}
                 }
             };
@@ -902,19 +937,19 @@ var AutoLogin = Flowjs.Class({
             var autoLogin = function(){
                 var t = Date.now();
                 $.ajax({
-                    url: 'http://www.5pai.com/Part_Default/TopUserAccount.aspx',
+                    url: 'http://www.lpai.com.cn/User/UserCenter.aspx',
                     data: {},
                     type: "get",
                     dataType: "html",
                     cache: false,
                     success:function(s){
-                        if(s == ''){
+                        if(s.indexOf('对不起，您暂未登录！') != -1){
                             if( !isEnd )Logger.check('检查登录情况:未登录');
                             if(isAutoLogin){
                                 if(!_this._t || (t - _this._t > 10000)){
                                     _this._t = t;
                                     Logger.price('尝试自动登录');
-                                    window.open('http://user.5pai.com/qq/Default.aspx?__redirect=http://www.5pai.com');
+                                    window.open('http://www.lpai.com.cn/QQLogin/Default.aspx');
                                 }
                             }
                         }
@@ -933,6 +968,25 @@ var AutoLogin = Flowjs.Class({
                 input:{
                     autoLogin:{type:'boolean',empty:true},
                     isEnd:{type:'boolean',empty:true}
+                }
+            };
+        }
+    }
+});
+
+var End = Flowjs.Class({
+    extend:Flowjs.Step,
+    construct:function(options){
+        this.callsuper(options);
+    },
+    methods:{
+        _process:function(data,callback){
+            callback(null,{isEnd:true});
+        },
+        _describeData:function(){
+            return {
+                output:{
+                    isEnd:{type:'boolean'}
                 }
             };
         }
@@ -968,6 +1022,7 @@ var Flow = Flowjs.Class({
         this._addStep('启动自动登录', AutoLogin);
         this._addStep('立即执行自动登录', AutoLogin);
         this._addStep('取消自动登录', AutoLogin);
+        this._addStep('结束', End);
     },
     methods:{
         //初始化流程
@@ -994,6 +1049,10 @@ var Flow = Flowjs.Class({
                         _this._go('显示更新配置信息');
                     },
                     '修改出价价格':function(data){
+                        _this._go('根据用户输入更新配置',data);
+                        _this._go('显示更新配置信息');
+                    },
+                    '修改最大出价次数':function(data){
                         _this._go('根据用户输入更新配置',data);
                         _this._go('显示更新配置信息');
                     }
@@ -1046,6 +1105,8 @@ var Flow = Flowjs.Class({
                         cases:{
                             '出价次数超限':function(){
                                 _this._go('打印出价超限日志');
+                                _this._go('结束');
+                                _this._go('取消自动登录');
                             },
                             "达到出价条件":function(){
                                 // _this._go('启动自动出价器');
@@ -1103,7 +1164,8 @@ flow.implement('绑定用户更新配置的事件', BindConfigEvent);
 flow.implement('检查是否需要出价', IsPrice);
 flow.implement('检查结果', CheckResult);
 flow.implement('启动自动登录', AutoLogin);
-// flow.implement('立即执行自动登录', AutoLogin);
-// flow.implement('取消自动登录', AutoLogin);
+flow.implement('结束', End);
+flow.implement('立即执行自动登录', AutoLogin);
+flow.implement('取消自动登录', AutoLogin);
 
 flow.init();
