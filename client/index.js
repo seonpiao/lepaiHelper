@@ -1,4 +1,7 @@
 ﻿var version = '1.1.1';
+window.onbeforeunload = function(){
+    return 'Sure?';
+};
 var Logger = {
     ctimestamp:Date.now(),
     ptimestamp:Date.now(),
