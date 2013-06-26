@@ -209,6 +209,23 @@ var DetailViewer = Flowjs.Class({
     }
 });
 
+var doCheck = function(pid,callback){
+    $.ajax({
+        url:'http://www.lpai.com.cn/Process/BidShow.ashx',
+        data:{
+            pId:pid,
+            x:'0'
+        },
+        type:'get',
+        dataType:'json',
+        cache:false,
+        success:function(info){
+            var currInfo = info.Tables[0].Rows[0];
+            callback(currInfo);
+        }
+    });
+};
+
 var Check = Flowjs.Class({
     extend:Flowjs.Step,
     construct:function(options){
@@ -226,33 +243,24 @@ var Check = Flowjs.Class({
                 };
                 Logger.check('开始查询产品信息:' + retry + '(' + rid + ')');
                 var d1 = Date.now();
-                $.ajax({
-                    url:'http://www.lpai.com.cn/Process/BidShow.ashx',
-                    data:{
-                        pId:data.pid,
-                        x:'0'
-                    },
-                    type:'get',
-                    dataType:'json',
-                    cache:false,
-                    success:function(info){
+                doCheck(data.pid,function(currInfo){
+                    for(var rid in requests){
                         clearTimeout(requests[rid].timer);
-                        if(callback){
-                            d2 = Date.now();
-                            delay = d2 - d1;
-                            var currInfo = info.Tables[0].Rows[0];
-                            if(currInfo.state == '0'){
-                                var currPrice = parseFloat(currInfo.now_price);
-                                var currUser = decodeURIComponent(currInfo.set_price_people);
-                                var countdown = parseInt(currInfo.seconds) * 1000;
-                                Logger.check(delay + ' | ' + currUser + ' | <span style="color:red;">' + countdown + '</span>(' + rid + ')');
-                                callback(null,{isOk:true,isEnd:false,delay:delay,currPrice:currPrice,currUser:currUser,countdown:countdown});
-                            }
-                            else{
-                                callback(null,{isOk:true,isEnd:true,delay:delay});
-                            }
-                            callback = null;
+                    }
+                    if(callback){
+                        d2 = Date.now();
+                        delay = d2 - d1;
+                        if(currInfo.state == '0'){
+                            var currPrice = parseFloat(currInfo.now_price);
+                            var currUser = decodeURIComponent(currInfo.set_price_people);
+                            var countdown = parseInt(currInfo.seconds) * 1000;
+                            Logger.check(delay + ' | ' + currUser + ' | <span style="color:red;">' + countdown + '</span>(' + rid + ')');
+                            callback(null,{isOk:true,isEnd:false,delay:delay,currPrice:currPrice,currUser:currUser,countdown:countdown});
                         }
+                        else{
+                            callback(null,{isOk:true,isEnd:true,delay:delay});
+                        }
+                        callback = null;
                     }
                 });
                 requests[rid].timer = setTimeout(function(){
@@ -554,7 +562,6 @@ var Price = Flowjs.Class({
                 return;
             }
             var _this = this;
-            _this._times++;
             var pid = data.pid;
             var timeout = data.timeout;
             if(data.realPrice){
@@ -578,6 +585,7 @@ var Price = Flowjs.Class({
                                     Logger.check('已结束。(' + rid + ')');
                                 }
                                 else if(s.indexOf("success") != -1 || s == '2'){
+                                    _this._times++;
                                     Logger.check('[' + _this._times + ']出价成功(' + rid + ')');
                                 }
                                 else{
@@ -597,10 +605,21 @@ var Price = Flowjs.Class({
                     },timeout);
                 };
                 var rid = Date.now();
-                send(rid);
+                var priceTimer = setTimeout(function(){
+                    send(rid);
+                },300);
+                setTimeout(function(){
+                    doCheck(data.pid,function(currInfo){
+                        if(currInfo.seconds > data.priceTime){
+                            Logger.check('哈哈，省一次~');
+                            clearTimeout(priceTimer);
+                            callback(null,{priced:_this._times});
+                        }
+                    });
+                },50);
             }
             else{
-                Logger.price('[' + _this._times + ']模拟出价。');
+                Logger.check('[' + _this._times + ']模拟出价。');
                 callback(null,{priced:_this._times});
             }
         },
@@ -610,7 +629,8 @@ var Price = Flowjs.Class({
                     pid:{type:'string'},
                     timeout:{type:'number'},
                     realPrice:{type:'boolean'},
-                    user:{type:'string',empty:true}
+                    user:{type:'string',empty:true},
+                    priceTime:{type:'number'}
                 },
                 output:{
                     priced:{type:'number'}
