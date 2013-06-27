@@ -1,4 +1,4 @@
-﻿var version = '1.1.2';
+﻿var version = '1.1.3';
 window.onbeforeunload = function(){
     return 'Sure?';
 };
@@ -611,7 +611,7 @@ var Price = Flowjs.Class({
                 setTimeout(function(){
                     doCheck(data.pid,function(currInfo){
                         if(currInfo.seconds > data.priceTime){
-                            Logger.check('哈哈，省一次~');
+                            Logger.check('哈哈，省一次~(' + currInfo.seconds + ' | ' + data.priceTime + ')');
                             clearTimeout(priceTimer);
                             callback(null,{priced:_this._times});
                         }
